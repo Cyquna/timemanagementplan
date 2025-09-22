@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>October 2025 - Time Management Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the calendar */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 1px;
+        }
+        .calendar-day {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        /* Style for days with due dates to make them stand out */
+        .has-due-date {
+            box-shadow: 0 0 15px 2px rgba(74, 222, 128, 0.4), 0 0 5px 1px rgba(255, 255, 255, 0.2) inset;
+            border-color: rgba(74, 222, 128, 0.7) !important;
+        }
+        .proctored-test {
+             box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.6), 0 0 8px 2px rgba(255, 255, 255, 0.3) inset;
+            border-color: rgba(239, 68, 68, 0.8) !important;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.6), 0 0 8px 2px rgba(255, 255, 255, 0.3) inset; }
+            50% { box-shadow: 0 0 30px 8px rgba(239, 68, 68, 0.8), 0 0 12px 3px rgba(255, 255, 255, 0.4) inset; }
+            100% { box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.6), 0 0 8px 2px rgba(255, 255, 255, 0.3) inset; }
+        }
+        /* Custom scrollbar for better dark mode aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Bubble styles */
+        #day-bubble {
+            /* Transition properties for the animation */
+            transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 antialiased">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white tracking-tight">Time Management Plan</h1>
+            <p class="text-lg text-gray-400 mt-2">Cam Lay's comprehensive time management calendar.</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Calendar Section -->
+            <main class="flex-grow bg-gray-800 rounded-2xl shadow-2xl p-6 overflow-hidden">
+                <div id="calendar-header" class="flex items-center justify-between mb-6">
+                    <button id="prev-month" class="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h2 id="month-year" class="text-2xl font-semibold text-white"></h2>
+                    <button id="next-month" class="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+                <div id="calendar-grid" class="calendar-grid bg-gray-700">
+                    <!-- Calendar will be injected here -->
+                </div>
+            </main>
+
+            <!-- Legend Section -->
+            <aside class="lg:w-64 flex-shrink-0">
+                <div class="bg-gray-800 rounded-2xl shadow-2xl p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Color Legend</h3>
+                    <ul id="legend" class="space-y-3"></ul>
+                     <div class="mt-6 pt-6 border-t border-gray-700">
+                        <h3 class="text-xl font-semibold text-white mb-4">Indicators</h3>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-6 h-6 rounded-md border-2 border-green-400 has-due-date flex-shrink-0"></div>
+                            <span class="text-gray-300 text-sm">Assignment Due</span>
+                        </div>
+                        <div class="flex items-center space-x-3 mt-3">
+                            <div class="w-6 h-6 rounded-md border-2 border-red-500 proctored-test flex-shrink-0"></div>
+                            <span class="text-gray-300 text-sm">Major Test Due</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Bubble Elements -->
+    <div id="bubble-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 pointer-events-none backdrop-blur-sm transition-opacity duration-300"></div>
+    <div id="day-bubble" class="fixed bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl z-50 opacity-0 pointer-events-none p-4 flex flex-col">
+        <div id="bubble-content" class="overflow-y-auto"></div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DATA ---
+            const categories = {
+                'Communications': 'bg-purple-500', 'Math': 'bg-blue-500', 'English': 'bg-orange-500', 'Economics': 'bg-green-600',
+                'Personal': 'bg-pink-500', 'Job': 'bg-teal-500', 'Off Day': 'bg-gray-500'
+            };
+            const events = [
+                { date: '2025-10-01', title: 'Plan the week ahead', category: 'Personal' },
+                { date: '2025-10-02', title: 'Communications Outline Due', category: 'Communications', isDueDate: true },
+                { date: '2025-10-03', title: 'Math Sections 3.1-3.3', category: 'Math', isDueDate: true },
+                { date: '2025-10-03', title: 'English Unit 2 Quiz and Discussion Board', category: 'English', isDueDate: true },
+                { date: '2025-10-03', title: 'Communications Speech Due', category: 'Communications', isDueDate: true },
+                { date: '2025-10-04', title: 'Visit friend', category: 'Personal' },
+                { date: '2025-10-05', title: 'Economics Smart book, Assignment, and Quiz Due', category: 'Economics', isDueDate: true },
+                { date: '2025-10-06', title: 'Job Interview', category: 'Job' },
+                { date: '2025-10-07', title: 'Make ravioli for dinner', category: 'Personal' },
+                { date: '2025-10-08', title: 'OFF Day - Relax', category: 'Off Day' },
+                { date: '2025-10-09', title: 'English Outline Due', category: 'English', isDueDate: true },
+                { date: '2025-10-09', title: 'Communications Midterm Due', category: 'Communications', isDueDate: true },
+                { date: '2025-10-11', title: 'Grocery Shopping', category: 'Personal' },
+                { date: '2025-10-12', title: 'Study session at library', category: 'Personal' },
+                { date: '2025-10-13', title: 'OFF Day - Catch up on life', category: 'Off Day' },
+                { date: '2025-10-15', title: 'Job Interview', category: 'Job' },
+                { date: '2025-10-17', title: 'Math sections 3.4-4.2 and Quiz 3.1 & 3.3', category: 'Math', isDueDate: true },
+                { date: '2025-10-17', title: 'English Rough Draft Due', category: 'English', isDueDate: true },
+                { date: '2025-10-18', title: 'Team Project Meeting', category: 'Personal' },
+                { date: '2025-10-19', title: 'Economics Smart Book, Assignment, and Quiz due', category: 'Economics', isDueDate: true },
+                { date: '2025-10-20', title: 'OFF Day - Mental Health Day', category: 'Off Day' },
+                { date: '2025-10-22', title: 'Prepare for final speech', category: 'Communications' },
+                { date: '2025-10-23', title: 'Communications Outline due', category: 'Communications', isDueDate: true },
+                { date: '2025-10-24', title: 'Math sections 4.3-4.5 and quiz 4.1', category: 'Math', isDueDate: true },
+                { date: '2025-10-24', title: 'English Final Draft Due', category: 'English', isDueDate: true },
+                { date: '2025-10-24', title: 'Communications Final Speech due', category: 'Communications', isDueDate: true },
+                { date: '2025-10-25', title: 'Celebrate finishing projects!', category: 'Personal' },
+                { date: '2025-10-26', title: 'Economics Smartbook, Assignment, and Quiz due', category: 'Economics', isDueDate: true },
+                { date: '2025-10-28', title: 'Study for Math Proctored Test', category: 'Math' },
+                { date: '2025-10-29', title: 'Study for Math Proctored Test', category: 'Math' },
+                { date: '2025-10-31', title: 'Math section 4.6 and quiz 4.4', category: 'Math', isDueDate: true },
+                { date: '2025-10-31', title: 'VERY IMPORTANT PROCTORED TEST DUE', category: 'Math', isProctoredTest: true },
+                { date: '2025-10-31', title: 'English Unit 3 Due', category: 'English', isDueDate: true },
+            ];
+
+            // --- STATE ---
+            let currentDate = new Date(2025, 9, 1);
+            let lastBubbleRect = null;
+            let isBubbleVisible = false;
+
+            // --- DOM ELEMENTS ---
+            const calendarGrid = document.getElementById('calendar-grid');
+            const monthYearEl = document.getElementById('month-year');
+            const prevMonthBtn = document.getElementById('prev-month');
+            const nextMonthBtn = document.getElementById('next-month');
+            const legendEl = document.getElementById('legend');
+            const bubbleOverlay = document.getElementById('bubble-overlay');
+            const dayBubble = document.getElementById('day-bubble');
+            const bubbleContent = document.getElementById('bubble-content');
+
+            // --- FUNCTIONS ---
+            const renderCalendar = () => {
+                calendarGrid.innerHTML = '';
+                const month = currentDate.getMonth();
+                const year = currentDate.getFullYear();
+                monthYearEl.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+                const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                daysOfWeek.forEach(day => {
+                    calendarGrid.innerHTML += `<div class="text-center font-semibold text-sm text-gray-400 py-3">${day}</div>`;
+                });
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    calendarGrid.innerHTML += `<div class="border border-gray-700/50 bg-gray-800/50 rounded-lg"></div>`;
+                }
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+                    const dayEvents = events.filter(e => e.date === dateStr);
+                    let hasDueDate = dayEvents.some(e => e.isDueDate);
+                    let isProctored = dayEvents.some(e => e.isProctoredTest);
+
+                    dayEl.className = 'calendar-day relative p-2 border border-gray-700 bg-gray-800 rounded-lg min-h-[120px] flex flex-col cursor-pointer overflow-hidden';
+                    if (isProctored) dayEl.classList.add('proctored-test');
+                    else if (hasDueDate) dayEl.classList.add('has-due-date');
+
+                    let eventPillsHTML = '';
+                    dayEvents.slice(0, 3).forEach(event => {
+                        eventPillsHTML += `<div class="text-xs font-medium text-white px-2 py-0.5 rounded-full truncate ${categories[event.category]}">${event.title}</div>`;
+                    });
+                    if (dayEvents.length > 3) {
+                        eventPillsHTML += `<div class="text-xs text-gray-400 mt-1">+${dayEvents.length - 3} more</div>`;
+                    }
+
+                    let fullEventsHTML = '';
+                    if (dayEvents.length > 0) {
+                        fullEventsHTML = '<ul class="space-y-3">';
+                        dayEvents.forEach(event => {
+                            fullEventsHTML += `<li class="flex items-start space-x-3 text-sm"><div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${categories[event.category]}"></div><span class="text-gray-200">${event.title}</span></li>`;
+                        });
+                        fullEventsHTML += '</ul>';
+                    } else {
+                        fullEventsHTML = '<p class="text-sm text-gray-400">No events for this day.</p>';
+                    }
+
+                    dayEl.innerHTML = `
+                        <span class="font-semibold text-white mb-1">${day}</span>
+                        <div class="events-preview space-y-1">${eventPillsHTML}</div>
+                        <div class="events-details hidden">${fullEventsHTML}</div>
+                    `;
+
+                    dayEl.addEventListener('click', (e) => {
+                        if (isBubbleVisible) {
+                            hideBubble();
+                        } else {
+                            showBubble(e.currentTarget);
+                        }
+                    });
+                    calendarGrid.appendChild(dayEl);
+                }
+            };
+
+            const showBubble = (dayEl) => {
+                if (isBubbleVisible) return;
+                isBubbleVisible = true;
+
+                const dayNumber = dayEl.querySelector('span').textContent;
+                const detailsHTML = dayEl.querySelector('.events-details').innerHTML;
+                bubbleContent.innerHTML = `<h3 class="font-bold text-xl text-white mb-4">Events for October ${dayNumber}</h3>${detailsHTML}`;
+
+                lastBubbleRect = dayEl.getBoundingClientRect();
+
+                // Set initial position and state
+                dayBubble.style.top = `${lastBubbleRect.top}px`;
+                dayBubble.style.left = `${lastBubbleRect.left}px`;
+                dayBubble.style.width = `${lastBubbleRect.width}px`;
+                dayBubble.style.height = `${lastBubbleRect.height}px`;
+                dayBubble.style.opacity = '0';
+                dayBubble.style.transform = 'scale(0.95)';
+                dayBubble.style.pointerEvents = 'auto';
+                bubbleOverlay.style.pointerEvents = 'auto';
+
+                // Animate to final position
+                requestAnimationFrame(() => {
+                    bubbleOverlay.style.opacity = '1';
+                    dayBubble.style.opacity = '1';
+                    dayBubble.style.transform = 'scale(1)';
+                    dayBubble.style.width = 'min(400px, 90vw)';
+                    dayBubble.style.height = 'min(350px, 60vh)';
+                    dayBubble.style.top = '50%';
+                    dayBubble.style.left = '50%';
+                    dayBubble.style.transform = 'translate(-50%, -50%)';
+                });
+            };
+
+            const hideBubble = () => {
+                if (!isBubbleVisible) return;
+
+                // Animate back to original position
+                dayBubble.style.top = `${lastBubbleRect.top}px`;
+                dayBubble.style.left = `${lastBubbleRect.left}px`;
+                dayBubble.style.width = `${lastBubbleRect.width}px`;
+                dayBubble.style.height = `${lastBubbleRect.height}px`;
+                dayBubble.style.opacity = '0';
+                dayBubble.style.transform = 'scale(0.95)';
+                bubbleOverlay.style.opacity = '0';
+
+                const onTransitionEnd = () => {
+                    dayBubble.style.pointerEvents = 'none';
+                    bubbleOverlay.style.pointerEvents = 'none';
+                    isBubbleVisible = false;
+                    dayBubble.removeEventListener('transitionend', onTransitionEnd);
+                };
+                dayBubble.addEventListener('transitionend', onTransitionEnd);
+            };
+
+            const renderLegend = () => {
+                legendEl.innerHTML = '';
+                Object.entries(categories).forEach(([category, colorClass]) => {
+                    legendEl.innerHTML += `<li class="flex items-center space-x-3"><span class="w-4 h-4 rounded-full ${colorClass}"></span><span class="text-gray-300 text-sm">${category}</span></li>`;
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+            prevMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+            nextMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+            bubbleOverlay.addEventListener('click', hideBubble);
+            dayBubble.addEventListener('click', hideBubble);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === "Escape" && isBubbleVisible) hideBubble();
+            });
+
+            // --- INITIALIZATION ---
+            renderCalendar();
+            renderLegend();
+        });
+    </script>
+</body>
+</html>
+
